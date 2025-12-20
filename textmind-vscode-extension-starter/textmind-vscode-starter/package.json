@@ -1,0 +1,116 @@
+{
+  "name": "textmind",
+  "displayName": "TEXT MIND - Banking Test Automation",
+  "description": "AI-powered test generation from JIRA stories for banking applications",
+  "version": "1.0.0",
+  "publisher": "textmind",
+  "icon": "media/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/textmind/vscode-extension"
+  },
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Testing",
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "testing",
+    "automation",
+    "jira",
+    "banking",
+    "ai",
+    "test generation"
+  ],
+  "activationEvents": [
+    "onCommand:textmind.generateTests",
+    "onView:textmindJiraPanel"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "textmind.configure",
+        "title": "Configure API Key",
+        "category": "TEXT MIND"
+      },
+      {
+        "command": "textmind.generateTests",
+        "title": "Generate Tests from JIRA",
+        "category": "TEXT MIND"
+      },
+      {
+        "command": "textmind.viewUsage",
+        "title": "View Usage & Billing",
+        "category": "TEXT MIND"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "textmind",
+          "title": "TEXT MIND",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "textmind": [
+        {
+          "id": "textmindJiraPanel",
+          "name": "JIRA Stories"
+        },
+        {
+          "id": "textmindTestPanel",
+          "name": "Generated Tests"
+        },
+        {
+          "id": "textmindUsagePanel",
+          "name": "Usage & Billing"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "TEXT MIND",
+      "properties": {
+        "textmind.apiKey": {
+          "type": "string",
+          "description": "TEXT MIND API Key (get from https://app.textmind.ai)",
+          "scope": "application"
+        },
+        "textmind.jiraUrl": {
+          "type": "string",
+          "description": "JIRA Instance URL (e.g., https://yourcompany.atlassian.net)",
+          "default": ""
+        },
+        "textmind.apiEndpoint": {
+          "type": "string",
+          "description": "TEXT MIND API Endpoint",
+          "default": "https://api.textmind.ai/v1"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@types/vscode": "^1.80.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}
