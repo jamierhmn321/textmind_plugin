@@ -1,13 +1,13 @@
 {
-  "name": "textmind",
-  "displayName": "TEXT MIND - Banking Test Automation",
-  "description": "AI-powered test generation from JIRA stories for banking applications",
-  "version": "1.0.0",
+  "name": "fortress-pipeline2",
+  "displayName": "Fortress — Banking Test & Validation",
+  "description": "Generate JIRA-driven test suites and run compliance validations via Pipeline 2 (Customer VPC)",
+  "version": "2.0.0",
   "publisher": "textmind",
   "icon": "media/icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/textmind/vscode-extension"
+    "url": "https://github.com/textmind/vscode-fortress"
   },
   "engines": {
     "vscode": "^1.80.0"
@@ -22,76 +22,125 @@
     "automation",
     "jira",
     "banking",
-    "ai",
+    "compliance",
+    "ofac",
+    "bsa",
+    "aml",
     "test generation"
   ],
   "activationEvents": [
-    "onCommand:textmind.generateTests",
-    "onView:textmindJiraPanel"
+    "onCommand:fortress.configure",
+    "onCommand:fortress.generateTests",
+    "onCommand:fortress.viewWorkflow",
+    "onCommand:fortress.validateWireTransfer",
+    "onCommand:fortress.validateOFAC",
+    "onCommand:fortress.validateLoan",
+    "onCommand:fortress.checkHealth",
+    "onView:fortressJiraPanel",
+    "onView:fortressWorkflowPanel",
+    "onView:fortressValidationPanel"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "textmind.configure",
-        "title": "Configure API Key",
-        "category": "TEXT MIND"
+        "command": "fortress.configure",
+        "title": "Configure Pipeline 2 URL",
+        "category": "Fortress"
       },
       {
-        "command": "textmind.generateTests",
-        "title": "Generate Tests from JIRA",
-        "category": "TEXT MIND"
+        "command": "fortress.generateTests",
+        "title": "Generate Tests from JIRA Story",
+        "category": "Fortress"
       },
       {
-        "command": "textmind.viewUsage",
-        "title": "View Usage & Billing",
-        "category": "TEXT MIND"
+        "command": "fortress.viewWorkflow",
+        "title": "View Workflow Status",
+        "category": "Fortress"
+      },
+      {
+        "command": "fortress.validateWireTransfer",
+        "title": "Validate Wire Transfer",
+        "category": "Fortress"
+      },
+      {
+        "command": "fortress.validateOFAC",
+        "title": "Screen OFAC Sanctions",
+        "category": "Fortress"
+      },
+      {
+        "command": "fortress.validateLoan",
+        "title": "Validate Loan Application",
+        "category": "Fortress"
+      },
+      {
+        "command": "fortress.checkHealth",
+        "title": "Check Pipeline 2 Health",
+        "category": "Fortress"
       }
     ],
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "textmind",
-          "title": "TEXT MIND",
+          "id": "fortress",
+          "title": "Fortress",
           "icon": "media/icon.svg"
         }
       ]
     },
     "views": {
-      "textmind": [
+      "fortress": [
         {
-          "id": "textmindJiraPanel",
-          "name": "JIRA Stories"
+          "id": "fortressJiraPanel",
+          "name": "Generate Tests",
+          "type": "webview"
         },
         {
-          "id": "textmindTestPanel",
-          "name": "Generated Tests"
+          "id": "fortressWorkflowPanel",
+          "name": "Workflow Status",
+          "type": "webview"
         },
         {
-          "id": "textmindUsagePanel",
-          "name": "Usage & Billing"
+          "id": "fortressValidationPanel",
+          "name": "Compliance Validation",
+          "type": "webview"
         }
       ]
     },
     "configuration": {
-      "title": "TEXT MIND",
+      "title": "Fortress",
       "properties": {
-        "textmind.apiKey": {
+        "fortress.pipeline2Url": {
           "type": "string",
-          "description": "TEXT MIND API Key (get from https://app.textmind.ai)",
-          "scope": "application"
+          "description": "Pipeline 2 base URL (running inside your VPC)",
+          "default": "http://54.174.78.213:8000"
         },
-        "textmind.jiraUrl": {
-          "type": "string",
-          "description": "JIRA Instance URL (e.g., https://yourcompany.atlassian.net)",
-          "default": ""
+        "fortress.pollIntervalMs": {
+          "type": "number",
+          "description": "Workflow status polling interval in milliseconds",
+          "default": 3000,
+          "minimum": 1000,
+          "maximum": 30000
         },
-        "textmind.apiEndpoint": {
-          "type": "string",
-          "description": "TEXT MIND API Endpoint",
-          "default": "https://api.textmind.ai/v1"
+        "fortress.pollTimeoutMs": {
+          "type": "number",
+          "description": "Maximum time to wait for workflow completion in milliseconds",
+          "default": 300000,
+          "minimum": 10000,
+          "maximum": 600000
         }
       }
+    },
+    "menus": {
+      "commandPalette": [
+        { "command": "fortress.configure" },
+        { "command": "fortress.generateTests" },
+        { "command": "fortress.viewWorkflow" },
+        { "command": "fortress.validateWireTransfer" },
+        { "command": "fortress.validateOFAC" },
+        { "command": "fortress.validateLoan" },
+        { "command": "fortress.checkHealth" }
+      ]
     }
   },
   "scripts": {

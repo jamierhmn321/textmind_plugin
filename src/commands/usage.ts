@@ -1,34 +1,84 @@
+/**
+ * View Workflow command — look up any workflow by ID and display its status
+ * and artifacts without going through the full generate flow.
+ *
+ * Useful for checking on a long-running workflow that was triggered earlier,
+ * or for reviewing the artifacts of a completed workflow.
+ */
 import * as vscode from 'vscode';
-import { TextMindClient } from '../api/client';
+import { Pipeline2Client, extractErrorMessage } from '../api/client';
 
-export async function viewUsageCommand(context: vscode.ExtensionContext) {
-    const apiKey = await context.secrets.get('textmindApiKey');
-    if (!apiKey) {
-        vscode.window.showErrorMessage('TEXT MIND API key not configured');
+export async function viewWorkflowCommand(): Promise<void> {
+    const cfg = vscode.workspace.getConfiguration('fortress');
+    const baseUrl: string = cfg.get('pipeline2Url') ?? 'http://54.174.78.213:8000';
+
+    const workflowId = await vscode.window.showInputBox({
+        title: 'Fortress — View Workflow',
+        prompt: 'Enter the workflow ID returned by Pipeline 2',
+        placeHolder: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+        ignoreFocusOut: true,
+        validateInput: (v) =>
+            v.trim().length > 0 ? null : 'Workflow ID cannot be empty',
+    });
+
+    if (!workflowId) {
         return;
     }
-    
-    const client = new TextMindClient(apiKey);
-    
+
     try {
-        const stats = await client.getUsageStats();
-        
-        const overage = stats.api_calls_overage > 0 
-            ? `\n⚠️ Overage: ${stats.api_calls_overage} calls ($${(stats.api_calls_overage * 0.05).toFixed(2)})`
-            : '';
-        
-        vscode.window.showInformationMessage(
-            `📊 TEXT MIND Usage (This Month)\n\n` +
-            `Tier: ${stats.billing_tier}\n` +
-            `API Calls: ${stats.api_calls_this_month} / ${stats.api_calls_included}\n` +
-            `Estimated Cost: $${stats.estimated_cost.toFixed(2)}${overage}`,
-            'View Dashboard'
-        ).then(selection => {
-            if (selection === 'View Dashboard') {
-                vscode.env.openExternal(vscode.Uri.parse('https://app.textmind.ai/usage'));
+        const client = new Pipeline2Client(baseUrl);
+        const result = await client.getWorkflow(workflowId.trim());
+
+        const lines: string[] = [
+            `Workflow ID : ${result.workflow_id}`,
+            `JIRA Key    : ${result.jira_key}`,
+            `Status      : ${result.status}`,
+            `Quality     : ${result.quality_score}`,
+            `Started     : ${result.started_at ?? 'n/a'}`,
+            `Completed   : ${result.completed_at ?? 'n/a'}`,
+        ];
+
+        const choice = await vscode.window.showInformationMessage(
+            lines.join('\n'),
+            'Show Artifacts',
+            'Show Test Code',
+            'Close',
+        );
+
+        const artifacts = result.artifacts ?? {};
+
+        if (choice === 'Show Artifacts') {
+            const doc = await vscode.workspace.openTextDocument({
+                content: JSON.stringify(artifacts, null, 2),
+                language: 'json',
+            });
+            await vscode.window.showTextDocument(doc, {
+                preview: false,
+                viewColumn: vscode.ViewColumn.Beside,
+            });
+        } else if (choice === 'Show Test Code') {
+            const testCode =
+                (artifacts['test_code'] as string | undefined) ??
+                (artifacts['generated_code'] as string | undefined);
+
+            if (testCode) {
+                const doc = await vscode.workspace.openTextDocument({
+                    content: testCode,
+                    language: 'python',
+                });
+                await vscode.window.showTextDocument(doc, {
+                    preview: false,
+                    viewColumn: vscode.ViewColumn.Beside,
+                });
+            } else {
+                vscode.window.showWarningMessage(
+                    'No test_code in artifacts yet — the workflow may still be running.',
+                );
             }
-        });
-    } catch (error: any) {
-        vscode.window.showErrorMessage(`Failed to fetch usage: ${error.message}`);
+        }
+    } catch (err) {
+        vscode.window.showErrorMessage(
+            `Fortress: could not retrieve workflow — ${extractErrorMessage(err)}`,
+        );
     }
 }

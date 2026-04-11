@@ -1,49 +1,68 @@
+/**
+ * Configure command — lets the user set (and validate) the Pipeline 2 URL.
+ *
+ * Pipeline 2 runs inside the customer VPC with no application-layer auth,
+ * so all we need is the base URL (e.g. http://localhost:8000 or
+ * https://fortress-pipeline2.internal).
+ */
 import * as vscode from 'vscode';
-import { TextMindClient } from '../api/client';
+import { Pipeline2Client } from '../api/client';
 
-export async function configureCommand(context: vscode.ExtensionContext) {
-    // Get API key from user
-    const apiKey = await vscode.window.showInputBox({
-        prompt: 'Enter your TEXT MIND API key (get from https://app.textmind.ai)',
-        placeHolder: 'tm_sk_xxxxxxxxxx',
-        password: true,
-        ignoreFocusOut: true
+export async function configureCommand(): Promise<void> {
+    const cfg = vscode.workspace.getConfiguration('fortress');
+    const current: string = cfg.get('pipeline2Url') ?? 'http://54.174.78.213:8000';
+
+    const url = await vscode.window.showInputBox({
+        title: 'Fortress — Configure Pipeline 2',
+        prompt: 'Enter the base URL of your Pipeline 2 server (running inside your VPC)',
+        placeHolder: 'http://54.174.78.213:8000',
+        value: current,
+        ignoreFocusOut: true,
+        validateInput: (value) => {
+            try {
+                new URL(value);
+                return null;
+            } catch {
+                return 'Please enter a valid URL (e.g. http://localhost:8000)';
+            }
+        },
     });
-    
-    if (!apiKey) {
-        vscode.window.showWarningMessage('API key is required to use TEXT MIND');
-        return;
+
+    if (!url) {
+        return; // user cancelled
     }
-    
-    // Test connection
-    const client = new TextMindClient(apiKey);
-    const isValid = await vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: 'Validating API key...',
-        cancellable: false
-    }, async () => {
-        return await client.testConnection();
-    });
-    
-    if (!isValid) {
-        vscode.window.showErrorMessage('Invalid API key or connection failed');
-        return;
+
+    // Test connectivity before saving
+    const reachable = await vscode.window.withProgress(
+        {
+            location: vscode.ProgressLocation.Notification,
+            title: 'Fortress: checking Pipeline 2 connection…',
+            cancellable: false,
+        },
+        async () => {
+            try {
+                const client = new Pipeline2Client(url);
+                return await client.checkConnectivity();
+            } catch {
+                return false;
+            }
+        },
+    );
+
+    if (!reachable) {
+        const choice = await vscode.window.showWarningMessage(
+            `Could not reach Pipeline 2 at ${url}. Save anyway?`,
+            'Save Anyway',
+            'Cancel',
+        );
+        if (choice !== 'Save Anyway') {
+            return;
+        }
     }
-    
-    // Store API key securely
-    await context.secrets.store('textmindApiKey', apiKey);
-    
-    // Optionally configure JIRA URL
-    const jiraUrl = await vscode.window.showInputBox({
-        prompt: 'Enter your JIRA instance URL (optional)',
-        placeHolder: 'https://yourcompany.atlassian.net',
-        ignoreFocusOut: true
-    });
-    
-    if (jiraUrl) {
-        const config = vscode.workspace.getConfiguration('textmind');
-        await config.update('jiraUrl', jiraUrl, vscode.ConfigurationTarget.Global);
-    }
-    
-    vscode.window.showInformationMessage('✅ TEXT MIND configured successfully!');
+
+    await cfg.update('pipeline2Url', url, vscode.ConfigurationTarget.Global);
+
+    vscode.window.showInformationMessage(
+        `Fortress: Pipeline 2 URL saved → ${url}`,
+    );
 }
