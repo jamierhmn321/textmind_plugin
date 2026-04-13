@@ -50,7 +50,7 @@ const client_1 = require("../api/client");
 const validateWireTransfer_1 = require("./validateWireTransfer");
 async function validateOFACCommand() {
     const cfg = vscode.workspace.getConfiguration('fortress');
-    const baseUrl = cfg.get('pipeline2Url') ?? 'http://localhost:8000';
+    const baseUrl = cfg.get('pipeline2Url') ?? 'http://54.174.78.213:8000';
     const partyName = await vscode.window.showInputBox({
         title: 'Fortress — OFAC Sanctions Screen',
         prompt: 'Party name to screen (individual or entity)',

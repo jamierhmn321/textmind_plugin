@@ -61,7 +61,7 @@ class WorkflowPanel {
     }
     async _lookup(workflowId) {
         const cfg = vscode.workspace.getConfiguration('fortress');
-        const baseUrl = cfg.get('pipeline2Url') ?? 'http://localhost:8000';
+        const baseUrl = cfg.get('pipeline2Url') ?? 'http://54.174.78.213:8000';
         const client = new client_1.Pipeline2Client(baseUrl);
         try {
             const result = await client.getWorkflow(workflowId);
@@ -91,7 +91,7 @@ class WorkflowPanel {
     }
     async _approve(workflowId, checkpoint, decision) {
         const cfg = vscode.workspace.getConfiguration('fortress');
-        const baseUrl = cfg.get('pipeline2Url') ?? 'http://localhost:8000';
+        const baseUrl = cfg.get('pipeline2Url') ?? 'http://54.174.78.213:8000';
         const client = new client_1.Pipeline2Client(baseUrl);
         try {
             const resp = await client.submitApproval(workflowId, checkpoint, decision);

@@ -59,7 +59,7 @@ class JiraPanel {
     }
     async _handleSubmit(jiraKey, summary, description) {
         const cfg = vscode.workspace.getConfiguration('fortress');
-        const baseUrl = cfg.get('pipeline2Url') ?? 'http://localhost:8000';
+        const baseUrl = cfg.get('pipeline2Url') ?? 'http://54.174.78.213:8000';
         const pollInterval = cfg.get('pollIntervalMs') ?? 3000;
         const pollTimeout = cfg.get('pollTimeoutMs') ?? 300000;
         const client = new client_1.Pipeline2Client(baseUrl);

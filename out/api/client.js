@@ -59,10 +59,14 @@ exports.clientFromConfig = clientFromConfig;
 const axios_1 = __importStar(require("axios"));
 // ── Client ──────────────────────────────────────────────────────────
 class Pipeline2Client {
-    constructor(baseUrl) {
+    constructor(baseUrl, apiKey) {
+        const headers = { 'Content-Type': 'application/json' };
+        if (apiKey) {
+            headers['X-API-Key'] = apiKey;
+        }
         this.http = axios_1.default.create({
             baseURL: baseUrl.replace(/\/$/, ''), // strip trailing slash
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             timeout: 30000,
         });
     }
@@ -187,7 +191,8 @@ function clientFromConfig() {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const vscode = require('vscode');
     const cfg = vscode.workspace.getConfiguration('fortress');
-    const url = cfg.get('pipeline2Url') ?? 'http://localhost:8000';
-    return new Pipeline2Client(url);
+    const url = cfg.get('pipeline2Url') ?? 'http://fortress_api:8000';
+    const apiKey = cfg.get('apiKey') || undefined;
+    return new Pipeline2Client(url, apiKey);
 }
 //# sourceMappingURL=client.js.map

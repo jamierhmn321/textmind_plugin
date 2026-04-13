@@ -35,22 +35,25 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.configureCommand = configureCommand;
 /**
- * Configure command — lets the user set (and validate) the Pipeline 2 URL.
+ * Configure command — lets the user set (and validate) the Pipeline 2 URL
+ * and optional API key.
  *
- * Pipeline 2 runs inside the customer VPC with no application-layer auth,
- * so all we need is the base URL (e.g. http://localhost:8000 or
- * https://fortress-pipeline2.internal).
+ * The URL points to the FastAPI server running inside the customer VPC.
+ * The API key is only required when Pipeline 2 is exposed via API Gateway
+ * outside the VPC (sent as X-API-Key header).
  */
 const vscode = __importStar(require("vscode"));
 const client_1 = require("../api/client");
 async function configureCommand() {
     const cfg = vscode.workspace.getConfiguration('fortress');
-    const current = cfg.get('pipeline2Url') ?? 'http://localhost:8000';
+    const currentUrl = cfg.get('pipeline2Url') ?? '';
+    const currentKey = cfg.get('apiKey') ?? '';
+    // Step 1 — URL
     const url = await vscode.window.showInputBox({
-        title: 'Fortress — Configure Pipeline 2',
+        title: 'Fortress — Configure Pipeline 2 (1/2)',
         prompt: 'Enter the base URL of your Pipeline 2 server (running inside your VPC)',
-        placeHolder: 'http://localhost:8000',
-        value: current,
+        placeHolder: 'http://54.174.78.213:8000',
+        value: currentUrl,
         ignoreFocusOut: true,
         validateInput: (value) => {
             try {
@@ -65,6 +68,18 @@ async function configureCommand() {
     if (!url) {
         return; // user cancelled
     }
+    // Step 2 — API key (optional)
+    const apiKey = await vscode.window.showInputBox({
+        title: 'Fortress — Configure Pipeline 2 (2/2)',
+        prompt: 'Enter your API key (leave blank if Pipeline 2 is accessed directly inside the VPC)',
+        placeHolder: 'Leave blank if not required',
+        value: currentKey,
+        password: true,
+        ignoreFocusOut: true,
+    });
+    if (apiKey === undefined) {
+        return; // user cancelled
+    }
     // Test connectivity before saving
     const reachable = await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
@@ -72,7 +87,7 @@ async function configureCommand() {
         cancellable: false,
     }, async () => {
         try {
-            const client = new client_1.Pipeline2Client(url);
+            const client = new client_1.Pipeline2Client(url, apiKey || undefined);
             return await client.checkConnectivity();
         }
         catch {
@@ -86,6 +101,7 @@ async function configureCommand() {
         }
     }
     await cfg.update('pipeline2Url', url, vscode.ConfigurationTarget.Global);
+    await cfg.update('apiKey', apiKey, vscode.ConfigurationTarget.Global);
     vscode.window.showInformationMessage(`Fortress: Pipeline 2 URL saved → ${url}`);
 }
 //# sourceMappingURL=configure.js.map

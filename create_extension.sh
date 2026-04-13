@@ -46,7 +46,7 @@ echo "      vsce: $(vsce --version)"
 
 # ── Step 4: Package into .vsix ────────────────────────────────────────────────
 echo "[4/4] Packaging extension..."
-VSIX_FILE=$(vsce package --no-dependencies 2>&1 | grep -oE '[^ ]+\.vsix' | tail -1)
+VSIX_FILE=$(vsce package 2>&1 | grep -oE '[^ ]+\.vsix' | tail -1)
 
 if [[ -z "$VSIX_FILE" ]]; then
     # Fallback: find the newest .vsix in the current directory

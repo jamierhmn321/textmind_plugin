@@ -53,7 +53,7 @@ const vscode = __importStar(require("vscode"));
 const client_1 = require("../api/client");
 async function validateWireTransferCommand() {
     const cfg = vscode.workspace.getConfiguration('fortress');
-    const baseUrl = cfg.get('pipeline2Url') ?? 'http://localhost:8000';
+    const baseUrl = cfg.get('pipeline2Url') ?? 'http://54.174.78.213:8000';
     // ── Collect inputs ────────────────────────────────────────────────
     const amountStr = await vscode.window.showInputBox({
         title: 'Fortress — Wire Transfer Validation',

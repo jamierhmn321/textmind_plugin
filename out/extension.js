@@ -81,7 +81,7 @@ function activate(context) {
     // ── First-run prompt ──────────────────────────────────────────────
     const cfg = vscode.workspace.getConfiguration('fortress');
     const savedUrl = cfg.get('pipeline2Url') ?? '';
-    if (!savedUrl || savedUrl === 'http://localhost:8000') {
+    if (!savedUrl || savedUrl === 'http://fortress_api:8000') {
         vscode.window
             .showInformationMessage('Fortress: configure your Pipeline 2 URL to get started.', 'Configure', 'Dismiss')
             .then((sel) => {

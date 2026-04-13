@@ -74,7 +74,7 @@ const ETHNICITY_OPTIONS = [
 ];
 async function validateLoanCommand() {
     const cfg = vscode.workspace.getConfiguration('fortress');
-    const baseUrl = cfg.get('pipeline2Url') ?? 'http://localhost:8000';
+    const baseUrl = cfg.get('pipeline2Url') ?? 'http://54.174.78.213:8000';
     // ── Collect CFPB Section 1071 demographic fields ──────────────────
     const race = await vscode.window.showQuickPick(RACE_OPTIONS, {
         title: 'Fortress — Loan Validation (CFPB Section 1071)',

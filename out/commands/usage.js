@@ -45,7 +45,7 @@ const vscode = __importStar(require("vscode"));
 const client_1 = require("../api/client");
 async function viewWorkflowCommand() {
     const cfg = vscode.workspace.getConfiguration('fortress');
-    const baseUrl = cfg.get('pipeline2Url') ?? 'http://localhost:8000';
+    const baseUrl = cfg.get('pipeline2Url') ?? 'http://54.174.78.213:8000';
     const workflowId = await vscode.window.showInputBox({
         title: 'Fortress — View Workflow',
         prompt: 'Enter the workflow ID returned by Pipeline 2',
