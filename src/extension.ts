@@ -101,7 +101,7 @@ export function activate(context: vscode.ExtensionContext): void {
     const cfg = vscode.workspace.getConfiguration('fortress');
     const savedUrl: string = cfg.get('pipeline2Url') ?? '';
 
-    if (!savedUrl || savedUrl === 'http://54.174.78.213:8000') {
+    if (!savedUrl || savedUrl === 'http://fortress_api:8000') {
         vscode.window
             .showInformationMessage(
                 'Fortress: configure your Pipeline 2 URL to get started.',
