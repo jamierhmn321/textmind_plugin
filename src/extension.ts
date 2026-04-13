@@ -30,6 +30,17 @@ import { WorkflowPanel } from './providers/WorkflowPanel';
 import { ValidationPanel } from './providers/ValidationPanel';
 
 export function activate(context: vscode.ExtensionContext): void {
+    try {
+        _activate(context);
+    } catch (err) {
+        vscode.window.showErrorMessage(
+            `Fortress: extension failed to activate — ${err instanceof Error ? err.message : String(err)}`,
+        );
+        throw err;
+    }
+}
+
+function _activate(context: vscode.ExtensionContext): void {
     // ── Commands ──────────────────────────────────────────────────────
 
     context.subscriptions.push(
@@ -116,4 +127,4 @@ export function activate(context: vscode.ExtensionContext): void {
     }
 }
 
-export function deactivate(): void {}
+export function deactivate(): void { /* nothing to tear down */ }

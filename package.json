@@ -29,16 +29,7 @@
     "test generation"
   ],
   "activationEvents": [
-    "onCommand:fortress.configure",
-    "onCommand:fortress.generateTests",
-    "onCommand:fortress.viewWorkflow",
-    "onCommand:fortress.validateWireTransfer",
-    "onCommand:fortress.validateOFAC",
-    "onCommand:fortress.validateLoan",
-    "onCommand:fortress.checkHealth",
-    "onView:fortressJiraPanel",
-    "onView:fortressWorkflowPanel",
-    "onView:fortressValidationPanel"
+    "onStartupFinished"
   ],
   "main": "./out/extension.js",
   "contributes": {

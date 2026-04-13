@@ -66,6 +66,15 @@ const JiraPanel_1 = require("./providers/JiraPanel");
 const WorkflowPanel_1 = require("./providers/WorkflowPanel");
 const ValidationPanel_1 = require("./providers/ValidationPanel");
 function activate(context) {
+    try {
+        _activate(context);
+    }
+    catch (err) {
+        vscode.window.showErrorMessage(`Fortress: extension failed to activate — ${err instanceof Error ? err.message : String(err)}`);
+        throw err;
+    }
+}
+function _activate(context) {
     // ── Commands ──────────────────────────────────────────────────────
     context.subscriptions.push(vscode.commands.registerCommand('fortress.configure', () => (0, configure_1.configureCommand)()));
     context.subscriptions.push(vscode.commands.registerCommand('fortress.checkHealth', () => (0, health_1.checkHealthCommand)()));
