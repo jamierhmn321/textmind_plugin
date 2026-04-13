@@ -26,14 +26,17 @@ Generate pytest test suites from JIRA stories via the 6-agent AI pipeline, and r
 
 ## 1. Prerequisites
 
-| Requirement | Details |
-|---|---|
-| **VS Code** | Version 1.80.0 or later |
-| **Node.js** | v18 or later (only needed to build from source) |
-| **Pipeline 2 server** | Running and reachable from your machine (default: `http://54.174.78.213:8000`) |
-| **JIRA** | Any JIRA instance — you enter story details manually in the extension |
+| Requirement | Windows | Linux |
+|---|---|---|
+| **VS Code** | [Download from code.visualstudio.com](https://code.visualstudio.com/download) — run the `.exe` installer | Download the `.deb` / `.rpm` package from the same page, or install via `sudo snap install code --classic` |
+| **Node.js** | v18 or later — install via [nodejs.org](https://nodejs.org) `.msi` installer, or `winget install OpenJS.NodeJS.LTS`, or `choco install nodejs-lts` | v18 or later — `sudo apt install nodejs npm` (Ubuntu/Debian) or `sudo dnf install nodejs` (Fedora/RHEL). Use [nvm](https://github.com/nvm-sh/nvm) for version control |
+| **Git** *(optional)* | [git-scm.com](https://git-scm.com/download/win) — includes Git Bash (recommended terminal) | Usually pre-installed; `sudo apt install git` if missing |
+| **Pipeline 2 server** | Running and reachable from your machine (default: `http://54.174.78.213:8000`) | Same |
+| **JIRA** | Any JIRA instance — you enter story details manually in the extension | Same |
 
 > **No API key required.** Pipeline 2 is secured by your VPC network boundary. The extension connects directly to the Pipeline 2 FastAPI server.
+
+> **Windows terminal note:** All `npm` and `vsce` commands below work in **PowerShell**, **Command Prompt**, and **Git Bash**. Git Bash is recommended because it also handles the `curl` / `bash` commands in later sections without extra tooling.
 
 ---
 
@@ -43,16 +46,22 @@ Generate pytest test suites from JIRA stories via the 6-agent AI pipeline, and r
 
 This is the standard way to distribute a private VS Code extension without publishing to the Marketplace.
 
-**Step 1 — Build the `.vsix` package** (one-time, on any machine with Node.js)
+> **Pre-built package available.** A ready-to-install `fortress-pipeline2-2.0.0.vsix` file is already included in this repository. Skip to **Step 2** if you just want to install without building.
 
-```bash
+---
+
+**Step 1 — Build the `.vsix` package** (one-time, skip if using the pre-built file)
+
+**Windows (PowerShell or Git Bash)**
+
+```powershell
 # Navigate to the plugin directory
-cd vscode_fortress/textmind_plugin
+cd vscode_fortress\textmind_plugin
 
 # Install dependencies
 npm install
 
-# Install the VS Code Extension Manager (vsce) globally
+# Install the VS Code Extension Manager globally
 npm install -g @vscode/vsce
 
 # Compile TypeScript → JavaScript
@@ -62,22 +71,53 @@ npm run compile
 vsce package --no-dependencies
 ```
 
-This produces a file named **`fortress-pipeline2-2.0.0.vsix`** in the current directory.
+**Linux (bash)**
+
+```bash
+# Navigate to the plugin directory
+cd vscode_fortress/textmind_plugin
+
+# Install dependencies
+npm install
+
+# Install the VS Code Extension Manager globally
+# If you get a permissions error, use: sudo npm install -g @vscode/vsce
+npm install -g @vscode/vsce
+
+# Compile TypeScript → JavaScript
+npm run compile
+
+# Package into a .vsix file
+vsce package --no-dependencies
+```
+
+Both platforms produce **`fortress-pipeline2-2.0.0.vsix`** in the current directory.
+
+---
 
 **Step 2 — Install the `.vsix` into VS Code**
 
-*Via the command palette:*
+*Via the VS Code UI (Windows & Linux — same steps):*
 1. Open VS Code
-2. Press `Ctrl+Shift+P` (macOS: `Cmd+Shift+P`)
+2. Press `Ctrl+Shift+P`
 3. Type: `Extensions: Install from VSIX…`
-4. Select the `fortress-pipeline2-2.0.0.vsix` file
+4. Browse to and select `fortress-pipeline2-2.0.0.vsix`
 5. Click **Install** in the confirmation dialog
 6. Reload VS Code when prompted
 
 *Via the terminal:*
+
+**Windows (PowerShell or Command Prompt)**
+```powershell
+code --install-extension fortress-pipeline2-2.0.0.vsix
+```
+
+**Linux (bash)**
 ```bash
 code --install-extension fortress-pipeline2-2.0.0.vsix
 ```
+
+> **Linux snap note:** If VS Code was installed via `snap`, the `code` binary is at `/snap/bin/code`. Make sure `/snap/bin` is on your `PATH`, or use the full path.
 
 ---
 
@@ -85,21 +125,34 @@ code --install-extension fortress-pipeline2-2.0.0.vsix
 
 Use this if you want to iterate on the plugin code without packaging it every time.
 
+**Windows (PowerShell or Git Bash)**
+
+```powershell
+cd vscode_fortress\textmind_plugin
+npm install
+npm run compile
+```
+
+**Linux (bash)**
+
 ```bash
 cd vscode_fortress/textmind_plugin
 npm install
 npm run compile
 ```
 
-Then in VS Code:
+Then in VS Code (same on both platforms):
 1. Open the `textmind_plugin` folder as a workspace (`File → Open Folder`)
 2. Press **F5** — this opens a new **Extension Development Host** window with the plugin active
-3. All changes: run `npm run compile` again, then reload the host window (`Ctrl+R`)
+3. After changes: run `npm run compile` again, then reload the host window with `Ctrl+R`
 
-To watch for changes automatically:
+To watch for changes automatically (recompiles on every file save):
+
 ```bash
-npm run watch   # recompiles on every file save
+npm run watch
 ```
+
+> **Windows firewall prompt:** On first launch of the Extension Development Host, Windows may ask whether to allow VS Code network access. Click **Allow** so the extension can reach the Pipeline 2 server.
 
 ---
 
@@ -392,8 +445,12 @@ Copy the `workflow_id` from the response and check status in VS Code:
 
 Use these commands to verify the Pipeline 2 server is working correctly before (or alongside) using the VS Code extension. All commands target `http://54.174.78.213:8000`.
 
-> **Tip:** Add `-s | python3 -m json.tool` to any command to pretty-print the JSON response.  
+> **Tip (Linux / Git Bash):** Add `-s | python3 -m json.tool` to any command to pretty-print the JSON response.  
 > Example: `curl -s http://54.174.78.213:8000/health/ | python3 -m json.tool`
+>
+> **Tip (Windows PowerShell):** Use `Invoke-RestMethod` — it parses JSON automatically and prints it formatted.  
+> Example: `Invoke-RestMethod http://54.174.78.213:8000/health/`  
+> Alternatively, if you have Git Bash or Windows Subsystem for Linux (WSL), the `curl` commands below work unchanged.
 
 ---
 
@@ -445,6 +502,8 @@ curl http://54.174.78.213:8000/workflows/<workflow_id>
 ```
 
 **Poll until complete** (runs every 5 seconds, stops on completed/failed)
+
+*Linux / Git Bash on Windows:*
 ```bash
 WORKFLOW_ID=<workflow_id>
 while true; do
@@ -453,6 +512,17 @@ while true; do
   if [[ "$STATUS" == "completed" || "$STATUS" == "failed" ]]; then break; fi
   sleep 5
 done
+```
+
+*Windows (PowerShell):*
+```powershell
+$WORKFLOW_ID = "<workflow_id>"
+while ($true) {
+    $result = Invoke-RestMethod "http://54.174.78.213:8000/workflows/$WORKFLOW_ID"
+    Write-Host "$(Get-Date -Format 'HH:mm:ss') status: $($result.status)"
+    if ($result.status -eq "completed" -or $result.status -eq "failed") { break }
+    Start-Sleep -Seconds 5
+}
 ```
 
 **Extract generated test code from completed workflow**
@@ -599,7 +669,9 @@ curl -X POST http://54.174.78.213:8000/validate/loan-application \
 
 ### Quick end-to-end script
 
-Runs a full pipeline trigger → poll → print test code in one shot:
+Runs a full pipeline trigger → poll → print test code in one shot.
+
+*Linux / Git Bash on Windows:*
 
 ```bash
 #!/bin/bash
@@ -644,6 +716,46 @@ else:
   fi
   sleep 5
 done
+```
+
+*Windows (PowerShell):*
+
+```powershell
+$BASE = "http://54.174.78.213:8000"
+
+Write-Host "==> Triggering pipeline..."
+$body = @{
+    issue = @{
+        key = "BANK-999"
+        fields = @{
+            summary = "Wire transfer OFAC screening requirement"
+            description = "All wire transfers over $10,000 must be screened against the OFAC SDN list. Block sanctioned entities immediately and file a SAR within 30 days."
+        }
+    }
+} | ConvertTo-Json -Depth 5
+
+$response = Invoke-RestMethod -Method Post -Uri "$BASE/webhooks/jira" -ContentType "application/json" -Body $body
+$WORKFLOW_ID = $response.workflow_id
+Write-Host "==> Workflow ID: $WORKFLOW_ID"
+
+Write-Host "==> Polling for completion..."
+while ($true) {
+    $result = Invoke-RestMethod "$BASE/workflows/$WORKFLOW_ID"
+    Write-Host "$(Get-Date -Format 'HH:mm:ss') $($result.status)"
+    if ($result.status -eq "completed" -or $result.status -eq "failed") {
+        Write-Host "==> Final status: $($result.status)"
+        Write-Host "Quality score: $($result.quality_score)"
+        $code = $result.artifacts.test_code
+        if ($code) {
+            Write-Host "--- Generated test code ---"
+            Write-Host $code.Substring(0, [Math]::Min(2000, $code.Length))
+        } else {
+            Write-Host "(no test_code in artifacts)"
+        }
+        break
+    }
+    Start-Sleep -Seconds 5
+}
 ```
 
 ---
@@ -812,8 +924,9 @@ Open VS Code settings (`Ctrl+,`) and search for `fortress`, or edit your `settin
 
 ### "Cannot reach Pipeline 2 — is the server running and accessible?"
 
-Pipeline 2 is not running or the URL is wrong.
+Pipeline 2 is not running, the URL is wrong, or a firewall is blocking the connection.
 
+**Linux**
 ```bash
 # Check if Pipeline 2 is up with Docker Compose
 docker compose -f docker-compose.pipeline1.prod.yml ps
@@ -825,6 +938,18 @@ docker compose -f docker-compose.pipeline1.prod.yml up -d
 curl http://54.174.78.213:8000/health/
 # Expected: {"status":"healthy","service":"TEXT MIND Backend"}
 ```
+
+**Windows (PowerShell)**
+```powershell
+# Verify the health endpoint
+Invoke-RestMethod http://54.174.78.213:8000/health/
+# Expected: status healthy, service "TEXT MIND Backend"
+
+# Or use curl if Git Bash / Windows curl is available
+curl http://54.174.78.213:8000/health/
+```
+
+> **Windows firewall:** If the request times out, check that Windows Defender Firewall is not blocking outbound connections on port `8000`. Go to **Windows Security → Firewall & network protection → Allow an app through firewall** and ensure VS Code (and any terminal you use) has outbound access.
 
 ---
 
