@@ -7,7 +7,7 @@ import { Pipeline2Client, extractErrorMessage } from '../api/client';
 
 export async function checkHealthCommand(): Promise<void> {
     const cfg = vscode.workspace.getConfiguration('fortress');
-    const baseUrl: string = cfg.get('pipeline2Url') ?? 'http://54.174.78.213:8000';
+    const baseUrl: string = cfg.get('pipeline2Url') ?? 'http://fortress_api:8000';
 
     try {
         const client = new Pipeline2Client(baseUrl);
@@ -25,12 +25,25 @@ export async function checkHealthCommand(): Promise<void> {
             },
         );
 
-        vscode.window.showInformationMessage(
-            `Fortress Pipeline 2 — healthy\n` +
-            `Service: ${healthResult.service}\n` +
-            `Ready: ${readyResult.ready ? 'yes' : 'no'}\n` +
-            `URL: ${baseUrl}`,
-        );
+        const deps = [
+            `postgres: ${readyResult.postgres ? 'ok' : 'DOWN'}`,
+            `redis: ${readyResult.redis ? 'ok' : 'DOWN'}`,
+            `weaviate: ${readyResult.weaviate ? 'ok' : 'DOWN'}`,
+        ].join('  ');
+
+        if (readyResult.ready) {
+            vscode.window.showInformationMessage(
+                `Fortress Pipeline 2 — healthy\n` +
+                `Service: ${healthResult.service}  ${deps}\n` +
+                `URL: ${baseUrl}`,
+            );
+        } else {
+            vscode.window.showWarningMessage(
+                `Fortress Pipeline 2 — not ready\n` +
+                `Service: ${healthResult.service}  ${deps}\n` +
+                `URL: ${baseUrl}`,
+            );
+        }
     } catch (err) {
         const msg = extractErrorMessage(err);
         const configure = await vscode.window.showErrorMessage(

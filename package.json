@@ -45,7 +45,7 @@
     "commands": [
       {
         "command": "fortress.configure",
-        "title": "Configure Pipeline 2 URL",
+        "title": "Configure Pipeline 2 URL & API Key",
         "category": "Fortress"
       },
       {
@@ -112,8 +112,13 @@
       "properties": {
         "fortress.pipeline2Url": {
           "type": "string",
-          "description": "Pipeline 2 base URL (running inside your VPC)",
-          "default": "http://54.174.78.213:8000"
+          "description": "Pipeline 2 base URL. Use the DNS name assigned via API Gateway or your VPC DNS.",
+          "default": "http://fortress_api:8000"
+        },
+        "fortress.apiKey": {
+          "type": "string",
+          "description": "API key sent as X-API-Key header. Required when Pipeline 2 is exposed via API Gateway outside the VPC.",
+          "default": ""
         },
         "fortress.pollIntervalMs": {
           "type": "number",

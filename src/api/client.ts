@@ -107,10 +107,14 @@ export interface LoanApplicationRequest {
 export class Pipeline2Client {
     private http: AxiosInstance;
 
-    constructor(baseUrl: string) {
+    constructor(baseUrl: string, apiKey?: string) {
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (apiKey) {
+            headers['X-API-Key'] = apiKey;
+        }
         this.http = axios.create({
             baseURL: baseUrl.replace(/\/$/, ''), // strip trailing slash
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             timeout: 30_000,
         });
     }
@@ -122,7 +126,7 @@ export class Pipeline2Client {
         return res.data;
     }
 
-    async ready(): Promise<{ ready: boolean }> {
+    async ready(): Promise<{ ready: boolean; postgres: boolean; redis: boolean; weaviate: boolean }> {
         const res = await this.http.get('/health/ready');
         return res.data;
     }
@@ -269,6 +273,7 @@ export function clientFromConfig(): Pipeline2Client {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const vscode = require('vscode');
     const cfg = vscode.workspace.getConfiguration('fortress');
-    const url: string = cfg.get('pipeline2Url') ?? 'http://54.174.78.213:8000';
-    return new Pipeline2Client(url);
+    const url: string = cfg.get('pipeline2Url') ?? 'http://fortress_api:8000';
+    const apiKey: string | undefined = cfg.get('apiKey') || undefined;
+    return new Pipeline2Client(url, apiKey);
 }
